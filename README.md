@@ -1,3 +1,6 @@
+A Python automation tool that monitors a folder for new sales CSV files and automatically generates Excel reports with summary statistics and product-level sales analysis.
+
+
 # Task Management API
 
 A simple backend API built with FastAPI.
