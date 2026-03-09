@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task Manager</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            display: flex;
+            justify-content: center;
+            padding-top: 60px;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 400px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .task-input {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        button {
+            margin-left: 8px;
+            padding: 10px 15px;
+            border: none;
+            background: #4CAF50;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button.delete {
+            background: #e74c3c;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            background: #fafafa;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Task Manager</h1>
+
+<div class="task-input">
+    <input id="taskInput" placeholder="Enter a task">
+    <button onclick="addTask()">Add</button>
+</div>
+
+<ul id="taskList"></ul>
+
+</div>
+
+<script>
+
+async function loadTasks() {
+
+    const response = await fetch("/tasks")
+    const tasks = await response.json()
+
+    const list = document.getElementById("taskList")
+    list.innerHTML = ""
+
+    tasks.forEach(task => {
+
+        const li = document.createElement("li")
+
+        const checkbox = document.createElement("input")
+        checkbox.type = "checkbox"
+        checkbox.checked = task.completed
+        checkbox.onclick = () => toggleTask(task.id)
+
+        const text = document.createElement("span")
+        text.textContent = task.title
+
+        if(task.completed){
+            text.style.textDecoration = "line-through"
+        }
+
+        const edit = document.createElement("button")
+        edit.textContent = "Edit"
+        edit.onclick = () => editTask(task.id, task.title)
+
+        const del = document.createElement("button")
+        del.textContent = "Delete"
+        del.className = "delete"
+        del.onclick = () => deleteTask(task.id)
+
+        const buttons = document.createElement("div")
+        buttons.appendChild(edit)
+        buttons.appendChild(del)
+
+        li.appendChild(checkbox)
+        li.appendChild(text)
+        li.appendChild(buttons)
+
+        list.appendChild(li)
+
+    })
+}
+
+
+
+
+async function addTask() {
+
+    const title = document.getElementById("taskInput").value
+
+    if(!title) return
+
+    await fetch("/tasks?title=" + title, {
+        method: "POST"
+    })
+
+    document.getElementById("taskInput").value = ""
+
+    loadTasks()
+
+}
+
+async function deleteTask(id) {
+
+    await fetch("/tasks/" + id, {
+        method: "DELETE"
+    })
+
+    loadTasks()
+
+}
+
+async function editTask(id, currentTitle) {
+
+    const newTitle = prompt("Edit task:", currentTitle)
+
+    if(!newTitle) return
+
+    await fetch("/tasks/" + id + "?title=" + newTitle, {
+        method: "PUT"
+    })
+
+    loadTasks()
+
+}
+
+async function toggleTask(id){
+
+    await fetch("/tasks/" + id + "/toggle", {
+        method: "PUT"
+    })
+
+    loadTasks()
+
+}
+
+
+loadTasks()
+
+</script>
+
+
+</body>
+</html>
